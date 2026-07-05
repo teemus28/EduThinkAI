@@ -3,34 +3,32 @@ import faiss
 import numpy as np
 import pickle
 from typing import List, Any
-from sentence_transformers import SentenceTransformer
+from huggingface_hub import InferenceClient
 from EduThinkAI.embedding import EmbeddingPipeline
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class FaissVectorStore:
-    def __init__(self, persist_dir: str = "faiss_store", embedding_model: str = "all-MiniLM-L6-v2", chunk_size: int = 1000, chunk_overlap: int = 200):
-
-
-        self.persist_dir = persist_dir
+    def __init__(self, persist_dir: str = "faiss_store", embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2", chunk_size: int = 1000, chunk_overlap: int = 200):
         self.persist_dir = persist_dir
         os.makedirs(self.persist_dir, exist_ok=True)
         self.index = None
         self.metadata = []
         self.embedding_model = embedding_model
-        self.model = SentenceTransformer(embedding_model)
+        self.client = InferenceClient(token=os.getenv("HF_TOKEN"))
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        print(f"[INFO] Loaded embedding model: {embedding_model}")
+        print(f"[INFO] Using HF Inference API for embeddings: {embedding_model}")
 
-    def build_from_documents(self, documents: List[Any]):
-        print(f"[INFO] Building vector store from {len(documents)} raw documents...")
-        emb_pipe = EmbeddingPipeline(model_name=self.embedding_model, chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
-        chunks = emb_pipe.chunk_documents(documents)
-        embeddings = emb_pipe.embed_chunks(chunks)
-        metadatas = [{"text": chunk.page_content} for chunk in chunks]
-        self.add_embeddings(np.array(embeddings).astype('float32'), metadatas)
-        self.save()
-        print(f"[INFO] Vector store built and saved to {self.persist_dir}")
+    def _embed(self, texts: List[str]) -> np.ndarray:
+        result = self.client.feature_extraction(texts, model=self.embedding_model)
+        return np.array(result).astype('float32')
 
+    def query(self, query_text: str, top_k: int = 5):
+        query_emb = self._embed([query_text])
+        return self.search(query_emb, top_k=top_k)
+    
     def add_embeddings(self, embeddings: np.ndarray, metadatas: List[Any] = None):
         dim = embeddings.shape[1]
         if self.index is None:
@@ -64,12 +62,7 @@ class FaissVectorStore:
             results.append({"index": idx, "distance": dist, "metadata": meta})
         return results
 
-    def query(self, query_text: str, top_k: int = 5):
-        print(f"[INFO] Querying vector store for: '{query_text}'")
-        query_emb = self.model.encode([query_text]).astype('float32')
-        return self.search(query_emb, top_k=top_k)
 
-# Example usage
 if __name__ == "__main__":
     from EduThinkAI.data_loader import load_all_documents
     docs = load_all_documents("data")
