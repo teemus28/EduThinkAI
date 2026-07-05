@@ -1,6 +1,6 @@
 # 🎓 EduThinkAI – AI-Powered Educational Platform
 
-> 🚀 **Live Demo:** [https://EduThonkAI.onrender.com](https://eduthinkai.onrender.com/)  
+> 🚀 **Live Demo:** [https://EduThinkAI.onrender.com](https://eduthinkai.onrender.com/)  
 
 EduThinkAI is an AI-powered educational platform that helps students learn smarter through **Retrieval-Augmented Generation (RAG)** and **AI-generated Mind Maps**. It enables users to interact with educational documents, ask questions in natural language, analyze images, and visualize complex topics using interactive mind maps.
 
