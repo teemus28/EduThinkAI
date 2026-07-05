@@ -17,7 +17,7 @@ import requests
 # CONFIG
 # =====================================================
 
-BACKEND_URL = "http://localhost:8000"
+BACKEND_URL = "https://eduthinkai-backend.onrender.com"
 
 st.set_page_config(
     page_title="EduThink AI",
