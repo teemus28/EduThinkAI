@@ -1,6 +1,5 @@
 fastapi
 uvicorn[standard]
-torch
 transformers
 langchain
 langchain-community
@@ -16,7 +15,6 @@ huggingface_hub
 langchain_huggingface
 langchain-core
 pymupdf
-sentence-transformers
 faiss-cpu
 chromadb
 langchain-groq
